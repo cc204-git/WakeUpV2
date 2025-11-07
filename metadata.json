@@ -1,0 +1,7 @@
+{
+  "name": "Goal Lock",
+  "description": "An accountability app that locks away a secret (a 3-digit code on a lock) until you provide AI-verified visual proof that you have completed your goal by its deadline.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
