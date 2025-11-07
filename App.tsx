@@ -255,17 +255,7 @@ const CountdownDisplay: React.FC<{ goal: string, deadline: number, onVerify: () 
 // --- Main App Component ---
 
 const App: React.FC = () => {
-    // Initialize state directly by checking localStorage. This is more robust
-    // for deployment environments than using a useEffect hook for the initial check.
-    const [isApiKeySet, setIsApiKeySet] = useState<boolean>(() => {
-        try {
-            return hasApiKey();
-        } catch (error) {
-            console.error("Could not access localStorage. Assuming no API key is set.", error);
-            return false;
-        }
-    });
-
+    const [isApiKeySet, setIsApiKeySet] = useState<boolean | null>(null);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [phase, setPhase] = useState<AppPhase>(AppPhase.SETUP_GOAL);
     const [goal, setGoal] = useState('');
@@ -277,6 +267,17 @@ const App: React.FC = () => {
     
     const [isLoading, setIsLoading] = useState(false);
     const [verificationSuccess, setVerificationSuccess] = useState<boolean | null>(null);
+
+    useEffect(() => {
+        // Check for the API key after the component has mounted to avoid
+        // race conditions or errors with localStorage access on initial load.
+        try {
+            setIsApiKeySet(hasApiKey());
+        } catch (error) {
+            console.error("Error accessing localStorage:", error);
+            setIsApiKeySet(false); // Default to false if storage is inaccessible
+        }
+    }, []);
 
     const handleLoginSuccess = () => {
         setIsAuthenticated(true);
@@ -374,6 +375,15 @@ const App: React.FC = () => {
                 return <GoalSetupForm onSubmit={handleGoalSubmit} />;
         }
     };
+
+    // Render a loading state until the API key check is complete.
+    if (isApiKeySet === null) {
+        return (
+            <main className="min-h-screen w-full flex items-center justify-center p-4 bg-gray-900 font-sans">
+                {/* Initial blank screen while checking for API key, can add a spinner here */}
+            </main>
+        );
+    }
 
     if (!isApiKeySet) {
         return (
