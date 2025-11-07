@@ -1,27 +1,13 @@
 import { GoogleGenAI } from "@google/genai";
 
-// This placeholder will be replaced by the Netlify build command.
-const injectedApiKey = "__GEMINI_API_KEY_PLACEHOLDER__";
+// Use the provided API key directly to ensure the app initializes correctly.
+const API_KEY = "AIzaSyBQxYO1WpfQVcO--6WC4aVz82qetLFgCNU";
 
-export function setApiKey(key: string): void {
-  // This is now only used for local development.
-  localStorage.setItem('geminiApiKey', key);
+if (!API_KEY) {
+  throw new Error("API Key is not configured.");
 }
 
-function getApiKey(): string | null {
-    // On Netlify, the injectedApiKey will be the real key.
-    if (injectedApiKey && injectedApiKey !== "__GEMINI_API_KEY_PLACEHOLDER__") {
-        return injectedApiKey;
-    }
-    // Locally, we fall back to using localStorage.
-    return localStorage.getItem('geminiApiKey');
-}
-
-export function hasApiKey(): boolean {
-  const key = getApiKey();
-  return !!key && key !== "__GEMINI_API_KEY_PLACEHOLDER__";
-}
-
+const ai = new GoogleGenAI({ apiKey: API_KEY });
 
 function dataUrlToGeminiPart(dataUrl: string) {
   const [mimeTypePart, base64Data] = dataUrl.split(',');
@@ -35,14 +21,6 @@ function dataUrlToGeminiPart(dataUrl: string) {
 }
 
 export async function verifyGoalWithAI(goal: string, proofImageDataUrl: string): Promise<boolean> {
-  const apiKey = getApiKey();
-  if (!apiKey || apiKey === "__GEMINI_API_KEY_PLACEHOLDER__") {
-    // Throw an error if the key is missing or is still the placeholder.
-    throw new Error("API Key is not configured correctly.");
-  }
-
-  const ai = new GoogleGenAI({ apiKey });
-
   try {
     const model = 'gemini-2.5-flash';
     const imagePart = dataUrlToGeminiPart(proofImageDataUrl);

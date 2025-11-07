@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { AppPhase, CameraPurpose } from './types';
-import { verifyGoalWithAI, setApiKey, hasApiKey } from './services/geminiService';
+import { verifyGoalWithAI } from './services/geminiService';
 import { CameraModal } from './components/CameraModal';
 
 const LockIcon = () => (
@@ -8,13 +8,6 @@ const LockIcon = () => (
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
     </svg>
 );
-
-const KeyIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-indigo-400 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.629 5.629l-2.371 2.37-1.414-1.414 2.371-2.371A6 6 0 0121 9zM15 9a6 6 0 01-6 6m-3.371-1.629l-2.37 2.37a1.5 1.5 0 01-2.122 0l-1.414-1.414a1.5 1.5 0 010-2.122l2.37-2.37A6 6 0 019 9m0 0a2 2 0 012-2m-2 2a2 2 0 00-2 2" />
-    </svg>
-);
-
 
 const TargetIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -32,49 +25,6 @@ const Spinner = () => (
 
 
 // --- Sub-components defined inside App.tsx to reduce file count ---
-
-const ApiKeySetup: React.FC<{ onKeySubmit: () => void }> = ({ onKeySubmit }) => {
-    const [key, setKey] = useState('');
-    const [error, setError] = useState('');
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!key.trim()) {
-            setError('API Key cannot be empty.');
-            return;
-        }
-        setApiKey(key);
-        onKeySubmit();
-    };
-
-    return (
-        <div className="w-full max-w-sm mx-auto bg-gray-800 rounded-xl shadow-2xl p-8 space-y-6">
-            <div className="text-center">
-                <KeyIcon />
-                <h1 className="text-3xl font-bold text-white mt-4">Gemini API Key</h1>
-                <p className="text-gray-400 mt-2">Please enter your API key to continue.</p>
-            </div>
-            <form onSubmit={handleSubmit} className="space-y-6">
-                <div>
-                    <label htmlFor="apiKey" className="block text-sm font-medium text-gray-300">Your API Key</label>
-                    <input
-                        id="apiKey"
-                        type="password"
-                        value={key}
-                        onChange={e => setKey(e.target.value)}
-                        placeholder="Enter your secret key"
-                        className="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    />
-                </div>
-                {error && <p className="text-red-400 text-sm">{error}</p>}
-                <button type="submit" className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-indigo-500">
-                    Save & Continue
-                </button>
-            </form>
-        </div>
-    );
-};
-
 
 const LoginPage: React.FC<{ onLoginSuccess: () => void }> = ({ onLoginSuccess }) => {
     const [username, setUsername] = useState('');
@@ -255,7 +205,6 @@ const CountdownDisplay: React.FC<{ goal: string, deadline: number, onVerify: () 
 // --- Main App Component ---
 
 const App: React.FC = () => {
-    const [isApiKeySet, setIsApiKeySet] = useState<boolean | null>(null);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [phase, setPhase] = useState<AppPhase>(AppPhase.SETUP_GOAL);
     const [goal, setGoal] = useState('');
@@ -267,17 +216,6 @@ const App: React.FC = () => {
     
     const [isLoading, setIsLoading] = useState(false);
     const [verificationSuccess, setVerificationSuccess] = useState<boolean | null>(null);
-
-    useEffect(() => {
-        // Check for the API key after the component has mounted to avoid
-        // race conditions or errors with localStorage access on initial load.
-        try {
-            setIsApiKeySet(hasApiKey());
-        } catch (error) {
-            console.error("Error accessing localStorage:", error);
-            setIsApiKeySet(false); // Default to false if storage is inaccessible
-        }
-    }, []);
 
     const handleLoginSuccess = () => {
         setIsAuthenticated(true);
@@ -375,23 +313,6 @@ const App: React.FC = () => {
                 return <GoalSetupForm onSubmit={handleGoalSubmit} />;
         }
     };
-
-    // Render a loading state until the API key check is complete.
-    if (isApiKeySet === null) {
-        return (
-            <main className="min-h-screen w-full flex items-center justify-center p-4 bg-gray-900 font-sans">
-                {/* Initial blank screen while checking for API key, can add a spinner here */}
-            </main>
-        );
-    }
-
-    if (!isApiKeySet) {
-        return (
-            <main className="min-h-screen w-full flex items-center justify-center p-4 bg-gray-900 font-sans">
-                <ApiKeySetup onKeySubmit={() => setIsApiKeySet(true)} />
-            </main>
-        );
-    }
 
     if (!isAuthenticated) {
         return <LoginPage onLoginSuccess={handleLoginSuccess} />;
