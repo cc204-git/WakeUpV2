@@ -1,6 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 
-// Use the provided API key directly to ensure the app initializes correctly.
+// Use the provided API key directly, with the trailing backslash removed to fix the syntax error.
 const API_KEY = "AIzaSyBQxYO1WpfQVcO--6WC4aVz82qetLFgCNU";
 
 if (!API_KEY) {
