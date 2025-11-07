@@ -1,11 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 
-// Use the provided API key directly, with the trailing backslash removed to fix the syntax error.
+// The API key is hardcoded here to be used for all requests.
 const API_KEY = "AIzaSyBQxYO1WpfQVcO--6WC4aVz82qetLFgCNU";
-
-if (!API_KEY) {
-  throw new Error("API Key is not configured.");
-}
 
 const ai = new GoogleGenAI({ apiKey: API_KEY });
 
