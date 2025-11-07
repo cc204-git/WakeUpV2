@@ -255,7 +255,17 @@ const CountdownDisplay: React.FC<{ goal: string, deadline: number, onVerify: () 
 // --- Main App Component ---
 
 const App: React.FC = () => {
-    const [isApiKeySet, setIsApiKeySet] = useState<boolean | null>(null);
+    // Initialize state directly by checking localStorage. This is more robust
+    // for deployment environments than using a useEffect hook for the initial check.
+    const [isApiKeySet, setIsApiKeySet] = useState<boolean>(() => {
+        try {
+            return hasApiKey();
+        } catch (error) {
+            console.error("Could not access localStorage. Assuming no API key is set.", error);
+            return false;
+        }
+    });
+
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [phase, setPhase] = useState<AppPhase>(AppPhase.SETUP_GOAL);
     const [goal, setGoal] = useState('');
@@ -267,12 +277,6 @@ const App: React.FC = () => {
     
     const [isLoading, setIsLoading] = useState(false);
     const [verificationSuccess, setVerificationSuccess] = useState<boolean | null>(null);
-
-    useEffect(() => {
-        // Check for the API key after the component has mounted
-        // to ensure localStorage is available and avoid startup errors on some platforms.
-        setIsApiKeySet(hasApiKey());
-    }, []);
 
     const handleLoginSuccess = () => {
         setIsAuthenticated(true);
@@ -370,17 +374,6 @@ const App: React.FC = () => {
                 return <GoalSetupForm onSubmit={handleGoalSubmit} />;
         }
     };
-    
-    if (isApiKeySet === null) {
-        return (
-             <main className="min-h-screen w-full flex items-center justify-center p-4 bg-gray-900 font-sans">
-                <div className="text-center">
-                    <Spinner />
-                    <p className="mt-4 text-gray-400">Initializing...</p>
-                </div>
-            </main>
-        );
-    }
 
     if (!isApiKeySet) {
         return (
